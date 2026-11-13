@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Baha Kırbaşoğlu</title>
+    <meta name="description" content="Baha Kırbaşoğlu builds agentic systems: multi-agent orchestration, document pipelines and the review layers around them." />
+    <meta name="theme-color" content="#F4F1EA" />
+    <meta property="og:title" content="Baha Kırbaşoğlu" />
+    <meta property="og:description" content="Agents you can sign off." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/Archivo.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div class="loader" id="loader" aria-hidden="true"><span id="loader-count">0</span></div>
+    <canvas id="stage" aria-hidden="true"></canvas>
+    <div class="cursor" id="cursor" aria-hidden="true"></div>
+
+    <header class="bar">
+      <a class="mark" href="#top" aria-label="Top">BK</a>
+      <nav class="rail" aria-label="Sections">
+        <a href="#orchestrate" data-rail="1">01</a>
+        <a href="#documents" data-rail="2">02</a>
+        <a href="#research" data-rail="3">03</a>
+        <a href="#teaching" data-rail="4">04</a>
+        <a href="#lab" data-rail="5">05</a>
+        <a href="#index" data-rail="6">06</a>
+      </nav>
+      <div class="tools">
+        <button class="key" id="open-palette" type="button" aria-label="Open command menu"><kbd>⌘</kbd><kbd>K</kbd></button>
+        <button class="key" id="toggle-theme" type="button" aria-label="Switch theme"><span class="sun"></span></button>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero" data-shape="0" data-side="center">
+        <p class="eyebrow">AI Engineer, PEAKUP <i></i> MSc, Istanbul Technical University</p>
+        <h1 class="display">
+          <span class="line"><span>Agents you</span></span>
+          <span class="line"><span>can <em>sign off.</em></span></span>
+        </h1>
+        <div class="hero-foot">
+          <p class="name">Baha Kırbaşoğlu</p>
+          <p class="cue">Scroll</p>
+        </div>
+      </section>
+
+      <section class="act" id="orchestrate" data-shape="1" data-side="left">
+        <div class="copy">
+          <p class="eyebrow">01 <i></i> Orchestration</p>
+          <h2>A graph,<br />not a chat.</h2>
+          <p class="lede">Agents pass typed results. A person holds the gate.</p>
+        </div>
+        <div class="bench" id="toy-gate" aria-label="Approval gate demo"></div>
+      </section>
+
+      <section class="act" id="documents" data-shape="2" data-side="right">
+        <div class="copy">
+          <p class="eyebrow">02 <i></i> Documents</p>
+          <h2>Documents in.<br />Records out.</h2>
+          <p class="lede">110,000 to 120,000 a month, checked before they post.</p>
+        </div>
+        <div class="bench" id="toy-extract" aria-label="Document extraction demo"></div>
+      </section>
+
+      <section class="act" id="research" data-shape="3" data-side="left">
+        <div class="copy">
+          <p class="eyebrow">03 <i></i> Research</p>
+          <h2>Dice is not<br />detection.</h2>
+          <p class="lede">A fair score can hide every small lesion. Find them yourself.</p>
+        </div>
+        <div class="bench bench-dark" id="toy-game" aria-label="Lesion finding game"></div>
+      </section>
+
+      <section class="act" id="teaching" data-shape="4" data-side="right">
+        <div class="copy">
+          <p class="eyebrow">04 <i></i> Teaching</p>
+          <h2>1,000+ people.<br />100+ days.</h2>
+          <p class="lede">Corporate training, and four universities.</p>
+          <ul class="roll" aria-label="Organisations trained">
+            <li>Eczacıbaşı</li><li>KPMG</li><li>TAV</li><li>MetLife</li><li>Nexent Bank</li>
+            <li>CEVA</li><li>Hedef Filo</li><li>Centurion</li><li>Petroyağ</li><li>Brisa</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="act act-wide" id="lab" data-shape="5" data-side="center">
+        <div class="copy copy-center">
+          <p class="eyebrow">05 <i></i> Lab</p>
+          <h2>Two more patterns, live.</h2>
+        </div>
+        <div class="pair">
+          <div class="bench" id="toy-dedupe" aria-label="Deduplication demo"></div>
+          <div class="bench" id="toy-access" aria-label="Permission-aware retrieval demo"></div>
+        </div>
+      </section>
+
+      <section class="act act-index" id="index" data-shape="5" data-side="center">
+        <div class="copy copy-center">
+          <p class="eyebrow">06 <i></i> Index</p>
+          <h2>Open work.</h2>
+        </div>
+        <ol class="index" id="work"></ol>
+        <p class="built">Built for <span>Nexent Bank</span><span>Enerjisa</span><span>CEVA Logistics</span><span>Flormar</span><span>SASA</span><span>ZF</span></p>
+      </section>
+
+      <section class="outro" id="contact" data-shape="6" data-side="center">
+        <h2 class="display"><span class="line"><span>Say hello.</span></span></h2>
+        <nav class="links" aria-label="Contact">
+          <a href="https://www.linkedin.com/in/bahakirbasoglu" target="_blank" rel="noopener">LinkedIn</a>
+          <a href="https://github.com/Bahakirbasogluu" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://medium.com/@bahakirbashov" target="_blank" rel="noopener">Medium</a>
+          <a href="https://www.kaggle.com/bahakirbasoglu" target="_blank" rel="noopener">Kaggle</a>
+        </nav>
+        <p class="fine">Baha Kırbaşoğlu <i></i> 2026</p>
+      </section>
+    </main>
+
+    <div class="palette" id="palette" hidden>
+      <div class="palette-box" role="dialog" aria-label="Command menu">
+        <input id="palette-input" type="text" placeholder="Go to, open, play…" autocomplete="off" spellcheck="false" />
+        <ul id="palette-list" role="listbox"></ul>
+        <p class="palette-foot"><kbd>↑</kbd><kbd>↓</kbd> move <kbd>↵</kbd> run <kbd>esc</kbd> close</p>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
