@@ -904,6 +904,39 @@ button.chip {
   background: var(--accent) url("/portrait.webp") 50% 6% / 250% no-repeat;
 }
 
+.reach {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 14px;
+  font: 500 14px/1.4 var(--mono);
+  letter-spacing: 0.04em;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.9s var(--ease) 0.3s, transform 0.9s var(--ease) 0.3s;
+}
+.outro.in .reach {
+  opacity: 1;
+  transform: none;
+}
+.reach span {
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.reach a {
+  border-bottom: 1px solid var(--line);
+  transition: border-color 0.3s, color 0.3s;
+}
+.reach a + span {
+  margin-left: 18px;
+}
+.reach a:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 @media (max-width: 900px) {
   /* the stage becomes a band that lives in the page and scrolls with it */
   #stage {
@@ -935,6 +968,15 @@ button.chip {
   }
   .case-tab .t {
     white-space: nowrap;
+  }
+  .reach {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    justify-items: start;
+    font-size: 13px;
+  }
+  .reach a + span {
+    margin-left: 0;
   }
   .me {
     position: relative;

@@ -247,6 +247,16 @@ trail($("#trail"));
 facts($("#facts"));
 index($("#work-index"), { onHover: (i) => stage.focus(SHAPE.index, i) });
 
+// The number and the address are put together here, so they are not sitting in the page source for harvesters.
+const PHONE = ["+90", "553", "266", "07", "67"];
+const call = $("#call");
+call.textContent = PHONE.join(" ");
+call.href = `tel:${PHONE.join("")}`;
+const MAIL = ["bahakirbasoglu01", "gmail.com"];
+const mail = $("#mail");
+mail.textContent = MAIL.join("@");
+mail.href = `mailto:${MAIL.join("@")}`;
+
 // A click on empty page sends a ripple through the form.
 addEventListener("pointerdown", (ev) => {
   if (ev.target.closest("a, button, input, label, .bench, .palette, .viewer")) return;
