@@ -30,7 +30,7 @@ let dark = (store.get("theme") ?? (matchMedia("(prefers-color-scheme: dark)").ma
 
 // ------------------------------------------------------------------ stage
 // Without WebGL the page still works; it just has no form on stage.
-let stage = { setProgress() {}, setTheme() {}, openGate() {}, rebuildInitials() {}, focus() {}, pulse() {}, setLift() {}, pin() {} };
+let stage = { setProgress() {}, setTheme() {}, openGate() {}, rebuildInitials() {}, focus() {}, pulse() {}, pin() {} };
 try {
   stage = createStage($("#stage"), { reduced });
 } catch {
@@ -78,27 +78,36 @@ function berths() {
   }
 }
 const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
-const smooth = (v) => v * v * (3 - 2 * v);
 
-// On a phone the form lives in the empty slot at the top of each section and scrolls with the page,
-// so it never sits on the text. It changes into the next form as the next slot comes into view.
+// On a phone the canvas is a band in the page. It is docked on the slot nearest the middle of the
+// screen and then scrolls with the page on its own, with no per-frame positioning from here.
+// Only the change of form is driven by the scroll position.
+const band = $("#stage");
+let docked = -1;
+function dock(index) {
+  docked = index;
+  if (!band) return;
+  const top = index < 0 ? 0 : Math.round(anchors[index].slotMid - band.clientHeight / 2);
+  band.style.opacity = "0";
+  band.style.transform = index < 0 ? "" : `translate3d(0, ${top}px, 0)`;
+  requestAnimationFrame(() => (band.style.opacity = ""));
+}
 function followSlots() {
   const vh = innerHeight;
-  const bottom = scrollY + vh;
+  const centre = scrollY + vh / 2;
   let k = 0;
-  for (let j = 1; j < anchors.length; j++) if (bottom > anchors[j].slotTop) k = j;
-  const onScreen = (anchor) => 1 - (2 * (anchor.slotMid - scrollY)) / vh;
-  const to = onScreen(anchors[k]);
-  if (k === 0) {
-    stage.setProgress(anchors[0].shape);
-    return stage.setLift(to);
-  }
-  const enter = clamp01((bottom - anchors[k].slotTop) / (vh * 0.55));
-  const from = onScreen(anchors[k - 1]);
-  const stillThere = 1 - smooth(clamp01((from - 0.9) / 0.45));
-  const start = to + (Math.min(from, 1.25) - to) * stillThere;
+  let nearest = Infinity;
+  anchors.forEach((anchor, j) => {
+    const distance = Math.abs(anchor.slotMid - centre);
+    if (distance < nearest) {
+      nearest = distance;
+      k = j;
+    }
+  });
+  if (k !== docked) dock(k);
+  if (k === 0) return stage.setProgress(anchors[0].shape);
+  const enter = clamp01((scrollY + vh - anchors[k].slotTop) / (vh * 0.55));
   stage.setProgress(anchors[k - 1].shape + (anchors[k].shape - anchors[k - 1].shape) * enter);
-  stage.setLift(start + (to - start) * smooth(enter));
 }
 function onScroll() {
   const at = scrollY + innerHeight / 2;
@@ -111,7 +120,7 @@ function onScroll() {
   if (innerWidth < 900) {
     followSlots();
   } else {
-    stage.setLift(null);
+    if (docked !== -1) dock(-1);
     stage.setProgress(a.shape + (b.shape - a.shape) * held);
   }
   const current = t < 0.5 ? i : i + 1;
@@ -129,6 +138,7 @@ function onScroll() {
 const remeasure = () => {
   measure();
   berths();
+  if (docked !== -1) docked = -2; // the slots have moved: dock again
   onScroll();
 };
 measure();

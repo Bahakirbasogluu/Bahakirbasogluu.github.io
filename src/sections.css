@@ -905,6 +905,16 @@ button.chip {
 }
 
 @media (max-width: 900px) {
+  /* the stage becomes a band that lives in the page and scrolls with it */
+  #stage {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: 46vh;
+    height: 46svh;
+    will-change: transform;
+    transition: opacity 0.3s;
+  }
   .slot {
     display: block;
     grid-column: 1 / -1;

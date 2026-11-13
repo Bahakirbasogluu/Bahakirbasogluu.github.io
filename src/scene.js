@@ -517,15 +517,27 @@ export function createStage(canvas, { reduced = false } = {}) {
     from.needsUpdate = to.needsUpdate = heatFrom.needsUpdate = heatTo.needsUpdate = true;
   }
 
+  // On a phone the canvas is not the whole screen but a band in the page (see style): it scrolls
+  // with the content, natively, so the form cannot lag behind the text. BAND is that band's share
+  // of the small viewport height; it does not change when the address bar slides away.
+  const BAND = 0.46;
+  let zoom = 1;
+  let drawn = "";
   function resize() {
     const w = window.innerWidth;
-    const h = window.innerHeight;
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
     tall = w < 900;
-    fit = tall ? Math.min(1, (w / h) / 0.62) : Math.min(1, Math.max(0.55, w / h / 1.6));
-    uniforms.uSize.value = (tall ? 20 : 30) * renderer.getPixelRatio() * (h / 900);
+    const cw = tall ? canvas.clientWidth || w : w;
+    const ch = tall ? canvas.clientHeight || Math.round(window.innerHeight * BAND) : window.innerHeight;
+    const vh = tall ? ch / BAND : window.innerHeight;
+    if (drawn !== `${cw}x${ch}`) {
+      drawn = `${cw}x${ch}`;
+      renderer.setSize(cw, ch, false);
+      camera.aspect = cw / ch;
+      camera.updateProjectionMatrix();
+    }
+    zoom = tall ? vh / ch : 1;
+    fit = tall ? Math.min(1, w / vh / 0.62) : Math.min(1, Math.max(0.55, w / vh / 1.6));
+    uniforms.uSize.value = (tall ? 20 : 30) * renderer.getPixelRatio() * (vh / 900);
   }
 
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -533,7 +545,6 @@ export function createStage(canvas, { reduced = false } = {}) {
   let clock = 0;
   let gateOpen = 0;
   const pinned = {}; // shape index -> [x, y, scale] in world units, measured from the layout
-  let lift = null; // on narrow screens the page says where the form sits, in screen units from -1 to 1
   const HALF = Math.tan((camera.fov / 2) * (Math.PI / 180)) * camera.position.z;
   const accentColor = new THREE.Color("#d43a1e");
   const okColor = new THREE.Color("#1f6b4a");
@@ -558,7 +569,8 @@ export function createStage(canvas, { reduced = false } = {}) {
     const next = Math.min(segment + 1, set.length - 1);
     const place = (i) => {
       const pose = set[i];
-      const pin = tall ? null : pinned[i];
+      if (tall) return [0, 0, pose[2] * fit * zoom, pose[3], pose[4]];
+      const pin = pinned[i];
       return pin ? [pin[0], pin[1], pin[2], pose[3], pose[4]] : [pose[0] * fit, pose[1], pose[2] * fit, pose[3], pose[4]];
     };
     const a = place(segment);
@@ -566,7 +578,7 @@ export function createStage(canvas, { reduced = false } = {}) {
     const e = mix * mix * (3 - 2 * mix);
     tilt.x = lerp(tilt.x, pointerNdc.x > 2 ? 0 : pointerNdc.x, 0.05);
     tilt.y = lerp(tilt.y, pointerNdc.y > 2 ? 0 : pointerNdc.y, 0.05);
-    group.position.set(lerp(a[0], b[0], e), tall && lift !== null ? lift * HALF : lerp(a[1], b[1], e), 0);
+    group.position.set(lerp(a[0], b[0], e), lerp(a[1], b[1], e), 0);
     group.scale.setScalar(lerp(a[2], b[2], e));
     const sway = reduced ? 0 : Math.sin(clock * 0.25) * 0.08;
     group.rotation.set(lerp(a[4], b[4], e) - tilt.y * 0.12, lerp(a[3], b[3], e) + tilt.x * 0.22 + sway, 0);
@@ -632,9 +644,6 @@ export function createStage(canvas, { reduced = false } = {}) {
     openGate(seconds = 3.2) {
       gateOpen = seconds;
     },
-    setLift(value) {
-      lift = value;
-    },
     // Put a form where the layout has room for it: centre and size in pixels, or null to release it.
     pin(shape, box) {
       if (!box) return delete pinned[shape];
@@ -650,7 +659,8 @@ export function createStage(canvas, { reduced = false } = {}) {
     },
     // A ripple through the form from a point on screen.
     pulse(clientX, clientY) {
-      ray.setFromCamera(new THREE.Vector2((clientX / window.innerWidth) * 2 - 1, -(clientY / window.innerHeight) * 2 + 1), camera);
+      const box = canvas.getBoundingClientRect();
+      ray.setFromCamera(new THREE.Vector2(((clientX - box.left) / box.width) * 2 - 1, -((clientY - box.top) / box.height) * 2 + 1), camera);
       if (!ray.ray.intersectPlane(plane, hit)) return;
       group.worldToLocal(hit);
       uniforms.uPulse.value.copy(hit);
