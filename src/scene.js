@@ -1,5 +1,6 @@
 // One particle field that takes the form of whatever the page is talking about:
-// an agent graph, a stack of documents, a body with lesions, a lecture hall, a filter, initials.
+// a sign-off seal, an agent graph, a stack of documents, engagements in orbit, a body with lesions,
+// a lecture hall, a filter, a rising path, a shelf of repositories, initials.
 import * as THREE from "three";
 
 const TAU = Math.PI * 2;
@@ -206,6 +207,143 @@ function filter(n, rand) {
   return { pos, heat };
 }
 
+function seal(n, rand) {
+  // A sign-off stamp: two rims, tick marks between them, and the check.
+  const pos = new Float32Array(n * 3);
+  const heat = new Float32Array(n);
+  const check = [[-0.66, 0.04], [-0.2, -0.46], [0.78, 0.58]];
+  const legs = [Math.hypot(0.46, 0.5), Math.hypot(0.98, 1.04)];
+  for (let i = 0; i < n; i++) {
+    const roll = rand();
+    let p;
+    if (roll < 0.34) {
+      const a = rand() * TAU;
+      const r = 1.6 + (rand() - 0.5) * 0.05;
+      p = [Math.cos(a) * r, Math.sin(a) * r, (rand() - 0.5) * 0.1];
+    } else if (roll < 0.52) {
+      const a = (Math.floor(rand() * 72) / 72) * TAU;
+      const r = 1.3 + rand() * 0.14;
+      p = [Math.cos(a) * r, Math.sin(a) * r, 0];
+    } else if (roll < 0.66) {
+      const a = rand() * TAU;
+      const r = 1.16 + (rand() - 0.5) * 0.025;
+      p = [Math.cos(a) * r, Math.sin(a) * r, (rand() - 0.5) * 0.06];
+    } else {
+      const first = rand() * (legs[0] + legs[1]) < legs[0];
+      const a = check[first ? 0 : 1];
+      const b = check[first ? 1 : 2];
+      const t = rand();
+      const j = onSphere(0.085 * Math.sqrt(rand()), rand);
+      p = [a[0] + (b[0] - a[0]) * t + j[0], a[1] + (b[1] - a[1]) * t + j[1], 0.16 + j[2]];
+      heat[i] = 1;
+    }
+    pos.set(p, i * 3);
+  }
+  return { pos, heat };
+}
+
+function orbit(n, rand) {
+  // Nine engagements around one practice. Each satellite can be lit from the page.
+  const pos = new Float32Array(n * 3);
+  const heat = new Float32Array(n);
+  const group = new Int16Array(n).fill(-1);
+  const rings = [
+    { r: 1.05, tilt: 1.12, spin: 0.2, at: [0.6, 3.5] },
+    { r: 1.7, tilt: 1.2, spin: -0.35, at: [1.4, 3.3, 5.2] },
+    { r: 2.35, tilt: 1.08, spin: 0.5, at: [0.2, 1.9, 3.7, 5.3] },
+  ];
+  const place = (ring, a) => {
+    const x = Math.cos(a) * ring.r;
+    const y0 = Math.sin(a) * ring.r;
+    const y = y0 * Math.cos(ring.tilt);
+    const z = y0 * Math.sin(ring.tilt);
+    const c = Math.cos(ring.spin);
+    const s = Math.sin(ring.spin);
+    return [x * c - y * s, x * s + y * c, z];
+  };
+  const moons = rings.flatMap((ring) => ring.at.map((a) => ({ p: place(ring, a), r: 0.13 + 0.05 * rand() })));
+  for (let i = 0; i < n; i++) {
+    const roll = rand();
+    let p;
+    if (roll < 0.2) {
+      p = onSphere(0.4 * (rand() < 0.8 ? 1 : Math.cbrt(rand())), rand);
+    } else if (roll < 0.52) {
+      const ring = rings[Math.floor(rand() * rings.length)];
+      p = place(ring, (Math.floor(rand() * 220) / 220) * TAU);
+    } else {
+      const k = Math.floor(rand() * moons.length);
+      const s = onSphere(moons[k].r * (0.9 + rand() * 0.12), rand);
+      p = [moons[k].p[0] + s[0], moons[k].p[1] + s[1], moons[k].p[2] + s[2]];
+      group[i] = k;
+      heat[i] = k === 0 ? 1 : 0;
+    }
+    pos.set(p, i * 3);
+  }
+  return { pos, heat, group };
+}
+
+function helix(n, rand) {
+  // A path that widens as it climbs, with a landing at each role. The top one is now.
+  const pos = new Float32Array(n * 3);
+  const heat = new Float32Array(n);
+  const turns = 3.25;
+  const at = (t) => {
+    const a = t * turns * TAU;
+    const r = 0.5 + 0.55 * t;
+    return [Math.cos(a) * r, -2 + 4 * t, Math.sin(a) * r];
+  };
+  const stops = [0.04, 0.24, 0.44, 0.62, 0.8, 0.98];
+  for (let i = 0; i < n; i++) {
+    const roll = rand();
+    let p;
+    if (roll < 0.5) {
+      p = at(rand());
+      const j = onSphere(0.02, rand);
+      p = [p[0] + j[0], p[1] + j[1], p[2] + j[2]];
+    } else if (roll < 0.6) {
+      p = [(rand() - 0.5) * 0.02, -2 + 4 * rand(), (rand() - 0.5) * 0.02];
+    } else {
+      const k = Math.floor(rand() * stops.length);
+      const c = at(stops[k]);
+      const s = onSphere((0.1 + 0.022 * k) * (0.9 + rand() * 0.12), rand);
+      p = [c[0] + s[0], c[1] + s[1], c[2] + s[2]];
+      heat[i] = k === stops.length - 1 ? 1 : 0;
+    }
+    pos.set(p, i * 3);
+  }
+  return { pos, heat };
+}
+
+function shelf(n, rand) {
+  // Eight repositories as eight boxes, two by four. The one under the pointer lights up.
+  const pos = new Float32Array(n * 3);
+  const heat = new Float32Array(n);
+  const group = new Int16Array(n).fill(-1);
+  const size = 0.3;
+  const edges = [];
+  for (let axis = 0; axis < 3; axis++) for (const u of [-1, 1]) for (const v of [-1, 1]) edges.push([axis, u, v]);
+  for (let i = 0; i < n; i++) {
+    const k = Math.floor(rand() * 8);
+    const cx = ((k % 2) - 0.5) * 0.95;
+    const cy = (1.5 - Math.floor(k / 2)) * 0.95;
+    let p;
+    if (rand() < 0.82) {
+      const [axis, u, v] = edges[Math.floor(rand() * edges.length)];
+      const t = (rand() * 2 - 1) * size;
+      p = axis === 0 ? [t, u * size, v * size] : axis === 1 ? [u * size, t, v * size] : [u * size, v * size, t];
+    } else {
+      const face = Math.floor(rand() * 3);
+      const a = (rand() * 2 - 1) * size;
+      const b = (rand() * 2 - 1) * size;
+      const side = rand() < 0.5 ? -size : size;
+      p = face === 0 ? [side, a, b] : face === 1 ? [a, side, b] : [a, b, side];
+    }
+    pos.set([cx + p[0], cy + p[1], p[2]], i * 3);
+    group[i] = k;
+  }
+  return { pos, heat, group };
+}
+
 function initials(n, rand) {
   const pos = new Float32Array(n * 3);
   const heat = new Float32Array(n);
@@ -243,6 +381,8 @@ const VERT = /* glsl */ `
   uniform float uSize;
   uniform float uStill;
   uniform vec3 uPointer;
+  uniform vec3 uPulse;
+  uniform float uPulseAge;
   varying float vHeat;
   varying float vFade;
   void main() {
@@ -256,6 +396,11 @@ const VERT = /* glsl */ `
     float d = length(away);
     p.xy += normalize(away + 0.0001) * 0.3 * smoothstep(0.8, 0.0, d) * uStill;
     p.z += 0.25 * smoothstep(0.8, 0.0, d) * uStill;
+    vec2 out2 = p.xy - uPulse.xy;
+    float ring = length(out2) - uPulseAge * 3.4;
+    float wave = exp(-ring * ring * 9.0) * exp(-uPulseAge * 1.5) * uStill;
+    p.xy += normalize(out2 + 0.0001) * wave * 0.26;
+    p.z += wave * 0.3;
     vHeat = mix(aHeatFrom, aHeatTo, t);
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
@@ -289,9 +434,10 @@ export function createStage(canvas, { reduced = false } = {}) {
   camera.position.set(0, 0, 8.6);
 
   const rand = rng(20261113);
-  const builders = [graph, graph, documents, body, hall, filter, initials];
-  const shapes = builders.map((b, i) => (i === 1 ? null : b(N, rand)));
-  shapes[1] = shapes[0];
+  const builders = [seal, graph, documents, orbit, body, hall, filter, helix, shelf, initials];
+  const shapes = builders.map((b) => b(N, rand));
+  const GRAPH = 1;
+  const INITIALS = builders.length - 1;
 
   const geometry = new THREE.BufferGeometry();
   const attr = (array, size) => new THREE.BufferAttribute(array, size).setUsage(THREE.DynamicDrawUsage);
@@ -316,6 +462,8 @@ export function createStage(canvas, { reduced = false } = {}) {
     uStill: { value: reduced ? 0 : 1 },
     uAlpha: { value: 0.9 },
     uPointer: { value: new THREE.Vector3(99, 99, 0) },
+    uPulse: { value: new THREE.Vector3(0, 0, 0) },
+    uPulseAge: { value: 99 },
     uInk: { value: new THREE.Color("#121212") },
     uAccent: { value: new THREE.Color("#d43a1e") },
   };
@@ -337,12 +485,14 @@ export function createStage(canvas, { reduced = false } = {}) {
   // Where the form sits for each section: [x, y, scale, rotY, rotX]
   const poses = {
     wide: [
-      [1.3, 0.6, 0.8, -0.25, 0.08], [1.4, 0.0, 0.78, -0.42, 0.1], [-1.9, 0.0, 1.05, 0.55, 0.06], [2.0, 0.0, 0.98, -0.5, 0.0],
-      [-2.0, 0.1, 0.9, 0.25, 0.42], [2.7, 1.0, 0.5, 0.0, 0.3], [0.0, 1.0, 0.9, 0.0, 0.0],
+      [1.95, 0.8, 0.8, -0.35, 0.12], [1.4, 0.0, 0.78, -0.42, 0.1], [-1.9, 0.0, 1.05, 0.55, 0.06], [3.3, 0.2, 0.36, -0.2, 0.5],
+      [2.0, 0.0, 0.98, -0.5, 0.0], [-2.0, 0.1, 0.9, 0.25, 0.42], [2.7, 1.0, 0.5, 0.0, 0.3], [3.35, 0.0, 0.6, 0.3, 0.08],
+      [3.3, 0.0, 0.6, -0.5, 0.2], [0.0, 1.0, 0.9, 0.0, 0.0],
     ],
     tall: [
-      [0.0, 1.5, 0.52, -0.2, 0.1], [0.0, 1.95, 0.44, -0.3, 0.1], [0.0, 2.1, 0.5, 0.4, 0.06], [0.0, 2.0, 0.44, -0.4, 0.0],
-      [0.0, 2.0, 0.5, 0.2, 0.42], [0.0, 2.3, 0.36, 0.0, 0.25], [0.0, 1.3, 0.46, 0.0, 0.0],
+      [0.0, 1.45, 0.5, -0.2, 0.1], [0.0, 1.95, 0.44, -0.3, 0.1], [0.0, 2.1, 0.5, 0.4, 0.06], [0.0, 2.05, 0.3, -0.2, 0.5],
+      [0.0, 2.0, 0.44, -0.4, 0.0], [0.0, 2.0, 0.5, 0.2, 0.42], [0.0, 2.3, 0.36, 0.0, 0.25], [0.0, 1.85, 0.3, 0.3, 0.08],
+      [0.0, 2.05, 0.3, -0.5, 0.2], [0.0, 1.3, 0.46, 0.0, 0.0],
     ],
   }; // prettier-ignore
 
@@ -382,6 +532,8 @@ export function createStage(canvas, { reduced = false } = {}) {
   let last = performance.now();
   let clock = 0;
   let gateOpen = 0;
+  const accentColor = new THREE.Color("#d43a1e");
+  const okColor = new THREE.Color("#1f6b4a");
 
   function frame(now) {
     requestAnimationFrame(frame);
@@ -420,7 +572,9 @@ export function createStage(canvas, { reduced = false } = {}) {
       uniforms.uPointer.value.set(99, 99, 0);
     }
 
-    const graphWeight = Math.max(0, 1 - Math.max(0, progress - 1.15) * 4);
+    uniforms.uPulseAge.value += dt;
+    const graphWeight = Math.max(0, 1 - Math.abs(progress - GRAPH) * 3.2);
+    packetMaterial.color.copy(gateOpen > 0 ? okColor : accentColor);
     packetMaterial.opacity = graphWeight * 0.95;
     if (graphWeight > 0.01) {
       gateOpen = Math.max(0, gateOpen - dt);
@@ -448,6 +602,13 @@ export function createStage(canvas, { reduced = false } = {}) {
   document.documentElement.addEventListener("pointerleave", () => pointerNdc.set(9, 9));
   requestAnimationFrame(frame);
 
+  function refreshHeat() {
+    if (segment < 0) return;
+    heatFrom.array.set(shapes[segment].heat);
+    heatTo.array.set(shapes[Math.min(segment + 1, shapes.length - 1)].heat);
+    heatFrom.needsUpdate = heatTo.needsUpdate = true;
+  }
+
   return {
     setProgress(value) {
       progress = Math.max(0, Math.min(value, shapes.length - 1));
@@ -455,14 +616,30 @@ export function createStage(canvas, { reduced = false } = {}) {
     setTheme(dark) {
       uniforms.uInk.value.set(dark ? "#edeae3" : "#121212");
       uniforms.uAccent.value.set(dark ? "#ff5a3c" : "#d43a1e");
-      packetMaterial.color.set(dark ? "#ff5a3c" : "#d43a1e");
+      accentColor.set(dark ? "#ff5a3c" : "#d43a1e");
+      okColor.set(dark ? "#58c896" : "#1f6b4a");
       uniforms.uAlpha.value = dark ? 0.82 : 0.9;
     },
     openGate(seconds = 3.2) {
       gateOpen = seconds;
     },
+    // Light one member of a grouped form (a satellite, a box); -1 clears it.
+    focus(shape, member) {
+      const target = shapes[shape];
+      if (!target?.group) return;
+      for (let i = 0; i < N; i++) target.heat[i] = target.group[i] === member ? 1 : 0;
+      refreshHeat();
+    },
+    // A ripple through the form from a point on screen.
+    pulse(clientX, clientY) {
+      ray.setFromCamera(new THREE.Vector2((clientX / window.innerWidth) * 2 - 1, -(clientY / window.innerHeight) * 2 + 1), camera);
+      if (!ray.ray.intersectPlane(plane, hit)) return;
+      group.worldToLocal(hit);
+      uniforms.uPulse.value.copy(hit);
+      uniforms.uPulseAge.value = 0;
+    },
     rebuildInitials() {
-      shapes[6] = initials(N, rng(7));
+      shapes[INITIALS] = initials(N, rng(7));
       segment = -1;
     },
   };

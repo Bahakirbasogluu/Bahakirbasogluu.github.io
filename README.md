@@ -8,10 +8,12 @@ npm run dev      # http://localhost:5183
 npm run build    # static output in dist/
 ```
 
-- `src/scene.js` the stage: seven point-cloud forms and the morph between them
+- `src/scene.js` the stage: ten point-cloud forms, the morph between them, a ripple and a focus highlight
+- `src/content.js` everything the page says about the work: engagements, programmes, path, repositories
+- `src/sections.js` the parts built from that content: case explorer, teaching panel, path, facts, filterable index
 - `src/toys.js` approval gate, extraction, news watch, permission lens
 - `src/game.js` find the lesions
 - `src/main.js` scroll mapping, command menu (Cmd+K or /), lesson mode (T), theme
-- `src/style.css` type, layout, panels
+- `src/style.css`, `src/sections.css` type, layout, panels
 
 No backend, no tracking, no external requests. The font is Archivo (SIL Open Font License), self-hosted.

@@ -1,6 +1,8 @@
 import { createStage } from "./scene.js";
 import { access, dedupe, extract, gate } from "./toys.js";
 import { game } from "./game.js";
+import { CASES, REPOS } from "./content.js";
+import { cases, facts, index, marquee, teaching, ticker, trail } from "./sections.js";
 
 const root = document.documentElement;
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -28,7 +30,7 @@ let dark = (store.get("theme") ?? (matchMedia("(prefers-color-scheme: dark)").ma
 
 // ------------------------------------------------------------------ stage
 // Without WebGL the page still works; it just has no form on stage.
-let stage = { setProgress() {}, setTheme() {}, openGate() {}, rebuildInitials() {} };
+let stage = { setProgress() {}, setTheme() {}, openGate() {}, rebuildInitials() {}, focus() {}, pulse() {} };
 try {
   stage = createStage($("#stage"), { reduced });
 } catch {
@@ -50,6 +52,8 @@ document.fonts?.ready.then(() => stage.rebuildInitials());
 
 // The form on stage follows the section in view, and holds still while it is being read.
 const sections = $$("[data-shape]");
+const where = $("#where");
+const prog = $("#prog");
 let anchors = [];
 function measure() {
   anchors = sections.map((el) => ({ el, shape: Number(el.dataset.shape), mid: el.offsetTop + el.offsetHeight / 2 }));
@@ -64,7 +68,16 @@ function onScroll() {
   const held = Math.min(Math.max((t - 0.22) / 0.56, 0), 1);
   stage.setProgress(a.shape + (b.shape - a.shape) * held);
   const current = t < 0.5 ? i : i + 1;
-  $$(".rail a").forEach((link) => link.classList.toggle("on", Number(link.dataset.rail) === current));
+  let label = "";
+  $$(".rail a").forEach((link) => {
+    const on = Number(link.dataset.rail) === current;
+    link.classList.toggle("on", on);
+    if (on) label = link.dataset.name;
+  });
+  if (where.textContent !== label) where.textContent = label;
+  where.classList.toggle("on", Boolean(label));
+  const span = document.documentElement.scrollHeight - innerHeight;
+  prog.style.transform = `scaleX(${span > 0 ? Math.min(scrollY / span, 1) : 0})`;
 }
 const remeasure = () => {
   measure();
@@ -89,9 +102,32 @@ const seen = new IntersectionObserver(
       }
     }
   },
-  { threshold: 0.18 },
+  { threshold: 0.08 },
 );
 $$(".act, .outro").forEach((el) => seen.observe(el));
+
+// Numbers count up the first time they are seen.
+const counted = new IntersectionObserver(
+  (entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      counted.unobserve(entry.target);
+      const el = entry.target;
+      const target = Number(el.dataset.count);
+      const suffix = el.dataset.suffix ?? "";
+      const format = (n) => Math.round(n).toLocaleString("en-US") + suffix;
+      if (reduced) continue;
+      const start = performance.now();
+      const timer = setInterval(() => {
+        const p = Math.min((performance.now() - start) / 1400, 1);
+        el.textContent = format(target * (1 - Math.pow(1 - p, 4)));
+        if (p === 1) clearInterval(timer);
+      }, 32);
+    }
+  },
+  { threshold: 0.6 },
+);
+$$("[data-count]").forEach((el) => counted.observe(el));
 
 // ----------------------------------------------------------------- loader
 (() => {
@@ -130,39 +166,49 @@ if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
 }
 
 // ------------------------------------------------------------------- toys
-gate($("#toy-gate"), { onApprove: () => stage.openGate() });
+gate($("#toy-gate"), {
+  onApprove: () => {
+    stage.openGate();
+    const box = $("#toy-gate").getBoundingClientRect();
+    stage.pulse(box.left + box.width / 2, box.top + box.height / 2);
+  },
+});
 extract($("#toy-extract"));
 dedupe($("#toy-dedupe"));
 access($("#toy-access"));
 const lesions = game($("#toy-game"));
 
-// ------------------------------------------------------------------ index
-const WORK = [
-  ["agent-workflow-orchestrator", "Multi-agent workflows as data.", "LangGraph"],
-  ["news-watch-agent", "One deduplicated digest, hourly.", "Agent / MCP"],
-  ["workbook-review-agent", "It proposes. A person confirms.", "Human in the loop"],
-  ["permission-aware-rag", "Answers only what you may read.", "RAG"],
-  ["email-to-order-agent", "From free text to a quote.", "Workflow"],
-  ["erp-mcp-server", "Guarded writes for agents.", "MCP"],
-  ["document-extraction-pipeline", "Schema in, record out.", "Pipeline"],
-  ["lesion-level-eval", "Detection by lesion size.", "Evaluation"],
-];
-$("#work").innerHTML = WORK.map(
-  ([name, line, kind], i) => `<li><a href="https://github.com/Bahakirbasogluu/${name}" target="_blank" rel="noopener">
-    <span class="n">${String(i + 1).padStart(2, "0")}</span><span class="t">${name}</span><span class="d">${line}</span><span class="k">${kind}</span></a></li>`,
-).join("");
+// --------------------------------------------------------------- sections
+const SHAPE = { work: 3, index: 8 };
+ticker($("#now"));
+const explorer = cases($("#cases"), { onSelect: (i) => stage.focus(SHAPE.work, i) });
+teaching($("#teach"));
+marquee($("#trained"));
+trail($("#trail"));
+facts($("#facts"));
+index($("#work-index"), { onHover: (i) => stage.focus(SHAPE.index, i) });
+
+// A click on empty page sends a ripple through the form.
+addEventListener("pointerdown", (ev) => {
+  if (ev.target.closest("a, button, input, label, .bench, .palette, .viewer")) return;
+  stage.pulse(ev.clientX, ev.clientY);
+});
 
 // ---------------------------------------------------------------- palette
 const go = (id) => () => $(id).scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
 const open = (url) => () => window.open(url, "_blank", "noopener");
+const showCase = (i) => () => (go("#work")(), explorer.show(i));
 const COMMANDS = [
   ["Orchestration", "Go to", go("#orchestrate")],
   ["Documents", "Go to", go("#documents")],
+  ["Client work", "Go to", go("#work")],
   ["Research", "Go to", go("#research")],
   ["Teaching", "Go to", go("#teaching")],
   ["Lab", "Go to", go("#lab")],
+  ["Path", "Go to", go("#path")],
   ["Index", "Go to", go("#index")],
   ["Contact", "Go to", go("#contact")],
+  ...CASES.map((c, i) => [c.name, "Engagement", showCase(i)]),
   ["Play: find the lesions", "Game", () => (go("#research")(), setTimeout(() => lesions.start(), 700))],
   ["Lesson mode", "Press T", () => toggleLesson()],
   ["Switch theme", "View", toggleTheme],
@@ -170,7 +216,7 @@ const COMMANDS = [
   ["LinkedIn", "Open", open("https://www.linkedin.com/in/bahakirbasoglu")],
   ["Medium", "Open", open("https://medium.com/@bahakirbashov")],
   ["Kaggle", "Open", open("https://www.kaggle.com/bahakirbasoglu")],
-  ...WORK.map(([name]) => [name, "Repository", open(`https://github.com/Bahakirbasogluu/${name}`)]),
+  ...REPOS.map((repo) => [repo.name, "Repository", open(repo.url)]),
 ];
 const palette = $("#palette");
 const input = $("#palette-input");
@@ -226,9 +272,11 @@ const NOTES = [
   "An agent is only useful if someone can sign for what it did.",
   "Typed ports between agents. One human interrupt. Bounded loops.",
   "Extract what is printed. Judge it afterwards, in code.",
+  "Same habit in every sector: the system proposes, a person signs.",
   "Report detection by size, next to Dice.",
   "Teach the failure modes first.",
   "Filter before the model, not after.",
+  "Models first, then the systems around them.",
   "Read the tests first.",
   "Questions?",
 ];

@@ -13,8 +13,11 @@
   --ink-2: #3b3936;
   --mute: #7a766e;
   --line: rgba(18, 18, 18, 0.14);
+  --paper-3: #ebe6da;
   --accent: #d43a1e;
   --ok: #1f6b4a;
+  --amber: #a96200;
+  --teal: #0e5f66;
   --sans: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -28,8 +31,11 @@
   --ink-2: #c9c5bc;
   --mute: #8b877f;
   --line: rgba(237, 234, 227, 0.16);
+  --paper-3: #1b1a18;
   --accent: #ff5a3c;
   --ok: #58c896;
+  --amber: #f0b44c;
+  --teal: #6fd0d6;
 }
 
 * {
@@ -342,8 +348,7 @@ h2 {
 .act.in .copy,
 .outro.in .links,
 .act.in .bench,
-.act.in .index,
-.act.in .built {
+.act.in .index {
   opacity: 1;
   transform: none;
 }
@@ -934,21 +939,6 @@ h2 {
 .index a:hover .k,
 .index a:focus-visible .k {
   color: var(--accent);
-}
-.built {
-  grid-column: 1 / -1;
-  font: 500 11px/1.8 var(--mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--mute);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 18px;
-  opacity: 0;
-  transition: opacity 0.9s var(--ease) 0.2s;
-}
-.built span {
-  color: var(--ink);
 }
 
 /* outro ------------------------------------------------------------------- */
