@@ -703,16 +703,15 @@ button.chip {
 }
 
 @media (max-width: 1200px) {
-  .trail,
-  .facts,
-  .shelf {
-    grid-column: 1 / -1;
-  }
+  /* less room: the form keeps a narrower column of its own instead of hiding behind the panels */
   .cases {
-    grid-template-columns: minmax(230px, 4fr) minmax(0, 8fr);
+    grid-template-columns: minmax(200px, 3.2fr) minmax(0, 6.8fr) minmax(0, 2fr);
   }
-  .berth {
+  .case-tab .s {
     display: none;
+  }
+  .case-tab {
+    grid-template-columns: 26px 1fr;
   }
 }
 @media (max-width: 900px) {
@@ -849,6 +848,14 @@ button.chip {
 .bench-head span {
   text-align: right;
   line-height: 1.5;
+}
+
+/* a button that is held: the phone must not turn the press into a scroll, a selection or a menu */
+.hold {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 /* the form's own room at the top of each section, phones only */

@@ -31,7 +31,7 @@ export function gate(root, { onApprove } = {}) {
      <div class="memo" data-memo>Run a case. It stops at review and waits for you.</div>
      <label class="check"><input type="checkbox" data-own /> I started this run</label>`,
     `<button class="btn" data-run>Run case</button>
-     <button class="btn go" data-ok disabled>Hold to approve</button>
+     <button class="btn go hold" data-ok disabled>Hold to approve</button>
      <button class="btn" data-back disabled>Send back</button>
      <span class="note" data-note></span>`,
   );
@@ -85,12 +85,15 @@ export function gate(root, { onApprove } = {}) {
 
   // Approval is held, not clicked: a decision should take a moment.
   let held = null;
-  const release = () => {
+  const release = (ev) => {
     if (!held) return;
+    // A finger drifts and phones cancel a long press on their own; only lifting the finger ends a touch hold.
+    if (held.touch && ev && ev.type !== "pointerup" && ev.type !== "touchend") return;
     clearTimeout(held.timer);
     cancelAnimationFrame(held.raf);
     held = null;
     ok.style.background = "";
+    if (ev && !ok.disabled) say("Keep it pressed to approve.");
   };
   const hold = (ev) => {
     if (ok.disabled || held) return;
@@ -99,12 +102,22 @@ export function gate(root, { onApprove } = {}) {
       say("Four eyes: whoever starts a run cannot approve it.", "bad");
       return;
     }
+    say("");
     const start = performance.now();
-    const mine = (held = {});
+    const mine = (held = { touch: ev.pointerType === "touch" || ev.pointerType === "pen" });
+    if (ev.pointerId !== undefined) {
+      try {
+        ok.setPointerCapture(ev.pointerId);
+      } catch {
+        /* a synthetic or already released pointer cannot be captured */
+      }
+    }
     // The timer decides; the animation only shows it.
     mine.timer = setTimeout(() => {
       if (held !== mine) return;
-      release();
+      held = null;
+      cancelAnimationFrame(mine.raf);
+      ok.style.background = "";
       approve();
     }, HOLD_MS);
     const tick = (now) => {
@@ -117,7 +130,8 @@ export function gate(root, { onApprove } = {}) {
   };
   ok.addEventListener("pointerdown", hold);
   ok.addEventListener("keydown", (ev) => (ev.key === "Enter" || ev.key === " ") && !ev.repeat && hold(ev));
-  ["pointerup", "pointerleave", "keyup", "blur"].forEach((name) => ok.addEventListener(name, release));
+  ["pointerup", "pointerleave", "pointercancel", "touchend", "keyup", "blur"].forEach((name) => ok.addEventListener(name, release));
+  ok.addEventListener("contextmenu", (ev) => ev.preventDefault());
 
   async function approve() {
     arm(false);
@@ -231,7 +245,7 @@ export function extract(root) {
       if (doc.flag === doc.lines[i][2]) row.className = "flag";
       row.innerHTML = `<span>${doc.lines[i][2]}</span><span>${span.textContent}</span>`;
       fields.append(row);
-      requestAnimationFrame(() => row.classList.add("on"));
+      setTimeout(() => row.classList.add("on"), 20); // a timer, so the rows also appear when the tab is not being painted
     }
     await wait(total / (spans.length + 1));
     bar.style.opacity = 0;

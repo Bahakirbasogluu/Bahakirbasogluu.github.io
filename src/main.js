@@ -90,7 +90,7 @@ function dock(index) {
   const top = index < 0 ? 0 : Math.round(anchors[index].slotMid - band.clientHeight / 2);
   band.style.opacity = "0";
   band.style.transform = index < 0 ? "" : `translate3d(0, ${top}px, 0)`;
-  requestAnimationFrame(() => (band.style.opacity = ""));
+  setTimeout(() => (band.style.opacity = ""), 40);
 }
 function followSlots() {
   const vh = innerHeight;
@@ -264,7 +264,16 @@ addEventListener("pointerdown", (ev) => {
 });
 
 // ---------------------------------------------------------------- palette
-const go = (id) => () => $(id).scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
+// Scroll to an element; if the smooth scroll has not got there shortly after, jump.
+function glide(el, block = "start") {
+  el.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block });
+  if (reduced) return;
+  const from = scrollY;
+  setTimeout(() => {
+    if (Math.abs(scrollY - from) < 2) el.scrollIntoView({ behavior: "auto", block });
+  }, 450);
+}
+const go = (id) => () => glide($(id));
 const open = (url) => () => window.open(url, "_blank", "noopener");
 const showCase = (i) => () => (go("#work")(), explorer.show(i));
 const COMMANDS = [
@@ -353,7 +362,7 @@ let lesson = null;
 let lessonAt = 0;
 function stepLesson(delta) {
   lessonAt = Math.min(Math.max(lessonAt + delta, 0), anchors.length - 1);
-  anchors[lessonAt].el.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
+  glide(anchors[lessonAt].el, "center");
   lesson.querySelector("b").textContent = `${lessonAt + 1} / ${anchors.length}`;
   lesson.querySelector("span").textContent = NOTES[lessonAt];
 }

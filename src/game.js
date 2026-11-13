@@ -193,7 +193,7 @@ export function game(root) {
       <button class="btn go" data-start>Play again</button>`;
     over.hidden = false;
     over.style.background = "rgba(11,11,11,.86)";
-    requestAnimationFrame(() => over.querySelectorAll("[data-w]").forEach((el) => el.style.setProperty("--w", `${el.dataset.w}%`)));
+    setTimeout(() => over.querySelectorAll("[data-w]").forEach((el) => el.style.setProperty("--w", `${el.dataset.w}%`)), 30);
     hud.textContent = "0.0 s";
   }
 
