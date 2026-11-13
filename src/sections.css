@@ -607,21 +607,6 @@ button.chip {
 .index li.dim {
   opacity: 0.2;
 }
-.index .k em {
-  font-style: normal;
-  color: var(--ok);
-  margin-right: 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.index .k em::before {
-  content: "";
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--ok);
-}
 .index a {
   grid-template-columns: 44px minmax(0, 1fr) auto;
   grid-template-areas: "n t k" ". d k";

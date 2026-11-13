@@ -58,7 +58,7 @@ export function cases(root, { onSelect } = {}) {
         <span class="open">${
           c.open.length
             ? `<small>Open version</small>${c.open.map((name) => `<a href="${repoUrl(name)}" ${ext}>${name}</a>`).join("")}`
-            : `<small>Client code stays private</small>`
+            : ""
         }</span>
       </div>`;
     requestAnimationFrame(() => panel.classList.add("show"));
@@ -151,7 +151,7 @@ export function index(root, { onHover } = {}) {
       ${REPOS.map(
         (repo, i) => `<li data-i="${i}"><a href="${repo.url}" ${ext}>
           <span class="n">${pad(i + 1)}</span><span class="t">${repo.name}</span><span class="d">${repo.line}</span>
-          <span class="k"><em>${repo.tests} tests</em>${repo.kind}</span></a></li>`,
+          <span class="k">${repo.kind}</span></a></li>`,
       ).join("")}
     </ol>
     <div class="earlier">

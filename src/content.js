@@ -5,7 +5,6 @@ export const NOW = [
   "News-watch agent live since August 2026",
   "Third semester of Sektör Kampüste",
   "ISMSIT 2026 paper accepted",
-  "Eight open repositories, all tested in CI",
 ];
 
 export const CASES = [
@@ -160,14 +159,14 @@ export const TOOLBOX = [
 export const TAGS = ["LangGraph", "MCP", "RAG", "Human in the loop", "Evaluation", "Pydantic", "Azure OpenAI"];
 
 export const REPOS = [
-  { name: "agent-workflow-orchestrator", line: "Multi-agent workflows as data.", kind: "LangGraph", tests: 38, tags: ["LangGraph", "Human in the loop", "Evaluation", "Pydantic", "Azure OpenAI"] },
-  { name: "news-watch-agent", line: "One deduplicated digest, hourly.", kind: "Agent / MCP", tests: 38, tags: ["MCP", "Pydantic", "Azure OpenAI"] },
-  { name: "workbook-review-agent", line: "It proposes. A person confirms.", kind: "Human in the loop", tests: 25, tags: ["Human in the loop", "Pydantic", "Azure OpenAI"] },
-  { name: "permission-aware-rag", line: "Answers only what you may read.", kind: "RAG", tests: 19, tags: ["RAG", "Evaluation", "Azure OpenAI"] },
-  { name: "email-to-order-agent", line: "From free text to a quote.", kind: "Workflow", tests: 35, tags: ["Human in the loop", "Pydantic", "Azure OpenAI"] },
-  { name: "erp-mcp-server", line: "Guarded writes for agents.", kind: "MCP", tests: 16, tags: ["MCP", "Human in the loop", "Pydantic"] },
-  { name: "document-extraction-pipeline", line: "Schema in, record out.", kind: "Pipeline", tests: 29, tags: ["Pydantic", "Evaluation", "Azure OpenAI"] },
-  { name: "lesion-level-eval", line: "Detection by lesion size.", kind: "Evaluation", tests: 20, tags: ["Evaluation"] },
+  { name: "agent-workflow-orchestrator", line: "Multi-agent workflows as data.", kind: "LangGraph", tags: ["LangGraph", "Human in the loop", "Evaluation", "Pydantic", "Azure OpenAI"] },
+  { name: "news-watch-agent", line: "One deduplicated digest, hourly.", kind: "Agent / MCP", tags: ["MCP", "Pydantic", "Azure OpenAI"] },
+  { name: "workbook-review-agent", line: "It proposes. A person confirms.", kind: "Human in the loop", tags: ["Human in the loop", "Pydantic", "Azure OpenAI"] },
+  { name: "permission-aware-rag", line: "Answers only what you may read.", kind: "RAG", tags: ["RAG", "Evaluation", "Azure OpenAI"] },
+  { name: "email-to-order-agent", line: "From free text to a quote.", kind: "Workflow", tags: ["Human in the loop", "Pydantic", "Azure OpenAI"] },
+  { name: "erp-mcp-server", line: "Guarded writes for agents.", kind: "MCP", tags: ["MCP", "Human in the loop", "Pydantic"] },
+  { name: "document-extraction-pipeline", line: "Schema in, record out.", kind: "Pipeline", tags: ["Pydantic", "Evaluation", "Azure OpenAI"] },
+  { name: "lesion-level-eval", line: "Detection by lesion size.", kind: "Evaluation", tags: ["Evaluation"] },
 ].map((repo) => ({ ...repo, url: GH + repo.name }));
 
 export const EARLIER = [
