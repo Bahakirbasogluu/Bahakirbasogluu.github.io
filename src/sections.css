@@ -136,10 +136,11 @@ button.chip {
   display: grid;
   grid-template-columns: minmax(230px, 3.4fr) minmax(0, 6.2fr) minmax(0, 2.4fr);
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
 }
 .case-list {
   display: grid;
+  grid-auto-rows: 1fr;
   border-top: 1px solid var(--ink);
   background: color-mix(in srgb, var(--paper) 78%, transparent);
   backdrop-filter: blur(8px);
@@ -149,7 +150,7 @@ button.chip {
   position: relative;
   display: grid;
   grid-template-columns: 30px 1fr auto;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
   padding: 13px 8px;
   text-align: left;
@@ -201,26 +202,33 @@ button.chip {
 }
 .case-panel {
   grid-column: 2 !important;
-  min-height: 470px;
+  min-height: 0;
 }
-.case-panel .bench-body {
+.case-stack {
+  flex: 1;
+  display: grid;
+}
+.case {
+  grid-area: 1 / 1;
   gap: 22px;
   padding: 22px 18px;
-}
-.case-panel .bench-body > * {
+  visibility: hidden;
   opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+  transform: translateY(10px);
+  transition: opacity 0.45s var(--ease), transform 0.45s var(--ease), visibility 0s 0.45s;
 }
-.case-panel.show .bench-body > * {
+.case.on {
+  visibility: visible;
   opacity: 1;
   transform: none;
+  transition: opacity 0.55s var(--ease) 0.08s, transform 0.55s var(--ease) 0.08s, visibility 0s;
 }
-.case-panel.show .bench-body > :nth-child(2) {
-  transition-delay: 0.07s;
+.berth {
+  pointer-events: none;
 }
-.case-panel.show .bench-body > :nth-child(3) {
-  transition-delay: 0.14s;
+.act > .berth {
+  grid-column: 10 / -1;
+  grid-row: 1 / span 3;
 }
 .figure {
   display: flex;
@@ -272,12 +280,11 @@ button.chip {
   margin-left: 4px;
 }
 .open {
-  margin-left: auto;
+  margin-top: auto;
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
   align-items: baseline;
-  gap: 4px 14px;
+  gap: 6px 16px;
   font: 500 12px/1.4 var(--mono);
 }
 .open small {
@@ -338,16 +345,31 @@ button.chip {
 .cite:hover b {
   color: var(--accent);
 }
+.cite + .cite {
+  margin-top: 18px;
+  border-left-color: var(--line);
+}
 
 /* teaching ---------------------------------------------------------------- */
 #teach {
   min-height: 0;
 }
+.programme-stack {
+  display: grid;
+}
 .programme {
+  grid-area: 1 / 1;
   display: grid;
   gap: 6px;
-  min-height: 108px;
   align-content: start;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease), visibility 0s 0.4s;
+}
+.programme.on {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.45s var(--ease) 0.05s, visibility 0s;
 }
 .programme small {
   font: 500 10.5px/1.4 var(--mono);
@@ -689,6 +711,9 @@ button.chip {
   .cases {
     grid-template-columns: minmax(230px, 4fr) minmax(0, 8fr);
   }
+  .berth {
+    display: none;
+  }
 }
 @media (max-width: 900px) {
   .where,
@@ -729,6 +754,24 @@ button.chip {
     grid-column: 1 !important;
     min-height: 0;
   }
+  .case-panel .bench-foot {
+    order: -1;
+    border-top: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .case-panel .bench-head {
+    order: -2;
+  }
+  .case-stack {
+    display: block;
+  }
+  .case {
+    display: none;
+    padding: 20px 16px;
+  }
+  .case.on {
+    display: flex;
+  }
   .figure {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -738,11 +781,6 @@ button.chip {
   .parts div {
     grid-template-columns: minmax(0, 1fr);
     gap: 4px;
-  }
-  .open {
-    margin-left: 0;
-    justify-content: flex-start;
-    width: 100%;
   }
   .trail li {
     grid-template-columns: minmax(0, 1fr);

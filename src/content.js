@@ -5,6 +5,7 @@ export const NOW = [
   "News-watch agent live since August 2026",
   "Third semester of Sektör Kampüste",
   "ISMSIT 2026 paper accepted",
+  "DocGen under review at Neural Computing and Applications",
 ];
 
 export const CASES = [
@@ -81,12 +82,15 @@ export const CASES = [
   },
   {
     name: "PEAKUP",
-    sector: "Internal platform",
+    sector: "Internal and R&D",
     figure: "3",
     caption: "sector packs on one case-agent platform: banking, logistics and pharma",
-    parts: [["Case-agent platform", "Generalises the credit risk work: versioned agents and workflows, gated MCP tool connections and golden-case evaluations."]],
-    stack: ["Versioned workflows", "MCP tool gating", "Golden-case evaluation"],
-    open: ["agent-workflow-orchestrator"],
+    parts: [
+      ["Case-agent platform", "Generalises the credit risk work: versioned agents and workflows, gated MCP tool connections and golden-case evaluations."],
+      ["DocGen", "Multi-agent system that turns technical-support conversations into documentation, in English and Turkish: classification, retrieval and summarisation. Under review at Neural Computing and Applications."],
+    ],
+    stack: ["Versioned workflows", "MCP tool gating", "Golden-case evaluation", "RAG"],
+    open: ["agent-workflow-orchestrator", "docgen_data"],
   },
   {
     name: "ZF Friedrichshafen",

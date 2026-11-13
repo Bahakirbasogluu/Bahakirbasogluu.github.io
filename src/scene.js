@@ -532,6 +532,7 @@ export function createStage(canvas, { reduced = false } = {}) {
   let last = performance.now();
   let clock = 0;
   let gateOpen = 0;
+  const pinned = {}; // shape index -> [x, y, scale] in world units, measured from the layout
   let lift = null; // on narrow screens the page says where the form sits, in screen units from -1 to 1
   const HALF = Math.tan((camera.fov / 2) * (Math.PI / 180)) * camera.position.z;
   const accentColor = new THREE.Color("#d43a1e");
@@ -554,13 +555,19 @@ export function createStage(canvas, { reduced = false } = {}) {
     uniforms.uTime.value = clock;
 
     const set = tall ? poses.tall : poses.wide;
-    const a = set[segment];
-    const b = set[Math.min(segment + 1, set.length - 1)];
+    const next = Math.min(segment + 1, set.length - 1);
+    const place = (i) => {
+      const pose = set[i];
+      const pin = tall ? null : pinned[i];
+      return pin ? [pin[0], pin[1], pin[2], pose[3], pose[4]] : [pose[0] * fit, pose[1], pose[2] * fit, pose[3], pose[4]];
+    };
+    const a = place(segment);
+    const b = place(next);
     const e = mix * mix * (3 - 2 * mix);
     tilt.x = lerp(tilt.x, pointerNdc.x > 2 ? 0 : pointerNdc.x, 0.05);
     tilt.y = lerp(tilt.y, pointerNdc.y > 2 ? 0 : pointerNdc.y, 0.05);
-    group.position.set(lerp(a[0], b[0], e) * fit, tall && lift !== null ? lift * HALF : lerp(a[1], b[1], e), 0);
-    group.scale.setScalar(lerp(a[2], b[2], e) * fit);
+    group.position.set(lerp(a[0], b[0], e), tall && lift !== null ? lift * HALF : lerp(a[1], b[1], e), 0);
+    group.scale.setScalar(lerp(a[2], b[2], e));
     const sway = reduced ? 0 : Math.sin(clock * 0.25) * 0.08;
     group.rotation.set(lerp(a[4], b[4], e) - tilt.y * 0.12, lerp(a[3], b[3], e) + tilt.x * 0.22 + sway, 0);
 
@@ -627,6 +634,12 @@ export function createStage(canvas, { reduced = false } = {}) {
     },
     setLift(value) {
       lift = value;
+    },
+    // Put a form where the layout has room for it: centre and size in pixels, or null to release it.
+    pin(shape, box) {
+      if (!box) return delete pinned[shape];
+      const unit = window.innerHeight / (2 * HALF);
+      pinned[shape] = [(box.x - window.innerWidth / 2) / unit, (window.innerHeight / 2 - box.y) / unit, box.size / unit];
     },
     // Light one member of a grouped form (a satellite, a box); -1 clears it.
     focus(shape, member) {

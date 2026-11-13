@@ -30,7 +30,7 @@ let dark = (store.get("theme") ?? (matchMedia("(prefers-color-scheme: dark)").ma
 
 // ------------------------------------------------------------------ stage
 // Without WebGL the page still works; it just has no form on stage.
-let stage = { setProgress() {}, setTheme() {}, openGate() {}, rebuildInitials() {}, focus() {}, pulse() {}, setLift() {} };
+let stage = { setProgress() {}, setTheme() {}, openGate() {}, rebuildInitials() {}, focus() {}, pulse() {}, setLift() {}, pin() {} };
 try {
   stage = createStage($("#stage"), { reduced });
 } catch {
@@ -60,6 +60,22 @@ function measure() {
     const slot = el.querySelector(".slot").getBoundingClientRect();
     return { el, shape: Number(el.dataset.shape), mid: el.offsetTop + el.offsetHeight / 2, slotTop: slot.top + scrollY, slotMid: slot.top + scrollY + slot.height / 2 };
   });
+}
+// In the wide sections the form gets the free columns on the right. Its natural width and
+// height (in the scene's own units) decide how large it can be drawn there.
+const EXTENT = { 3: [5.0, 3.0], 7: [2.5, 4.4], 8: [2.7, 3.9] };
+function berths() {
+  for (const { el, shape } of anchors) {
+    const extent = EXTENT[shape];
+    if (!extent) continue;
+    const box = el.querySelector(".berth")?.getBoundingClientRect();
+    if (!box || box.width < 120) {
+      stage.pin(shape, null);
+      continue;
+    }
+    const size = Math.min((box.width * 0.9) / extent[0], (innerHeight * 0.6) / extent[1]);
+    stage.pin(shape, { x: box.left + box.width / 2, y: innerHeight * 0.5, size });
+  }
 }
 const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
 const smooth = (v) => v * v * (3 - 2 * v);
@@ -112,9 +128,11 @@ function onScroll() {
 }
 const remeasure = () => {
   measure();
+  berths();
   onScroll();
 };
 measure();
+berths();
 addEventListener("resize", remeasure);
 addEventListener("load", remeasure);
 addEventListener("scroll", onScroll, { passive: true });
