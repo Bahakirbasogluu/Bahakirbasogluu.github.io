@@ -30,7 +30,7 @@ let dark = (store.get("theme") ?? (matchMedia("(prefers-color-scheme: dark)").ma
 
 // ------------------------------------------------------------------ stage
 // Without WebGL the page still works; it just has no form on stage.
-let stage = { setProgress() {}, setTheme() {}, openGate() {}, rebuildInitials() {}, focus() {}, pulse() {} };
+let stage = { setProgress() {}, setTheme() {}, openGate() {}, rebuildInitials() {}, focus() {}, pulse() {}, setLift() {} };
 try {
   stage = createStage($("#stage"), { reduced });
 } catch {
@@ -56,7 +56,33 @@ const where = $("#where");
 const prog = $("#prog");
 let anchors = [];
 function measure() {
-  anchors = sections.map((el) => ({ el, shape: Number(el.dataset.shape), mid: el.offsetTop + el.offsetHeight / 2 }));
+  anchors = sections.map((el) => {
+    const slot = el.querySelector(".slot").getBoundingClientRect();
+    return { el, shape: Number(el.dataset.shape), mid: el.offsetTop + el.offsetHeight / 2, slotTop: slot.top + scrollY, slotMid: slot.top + scrollY + slot.height / 2 };
+  });
+}
+const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
+const smooth = (v) => v * v * (3 - 2 * v);
+
+// On a phone the form lives in the empty slot at the top of each section and scrolls with the page,
+// so it never sits on the text. It changes into the next form as the next slot comes into view.
+function followSlots() {
+  const vh = innerHeight;
+  const bottom = scrollY + vh;
+  let k = 0;
+  for (let j = 1; j < anchors.length; j++) if (bottom > anchors[j].slotTop) k = j;
+  const onScreen = (anchor) => 1 - (2 * (anchor.slotMid - scrollY)) / vh;
+  const to = onScreen(anchors[k]);
+  if (k === 0) {
+    stage.setProgress(anchors[0].shape);
+    return stage.setLift(to);
+  }
+  const enter = clamp01((bottom - anchors[k].slotTop) / (vh * 0.55));
+  const from = onScreen(anchors[k - 1]);
+  const stillThere = 1 - smooth(clamp01((from - 0.9) / 0.45));
+  const start = to + (Math.min(from, 1.25) - to) * stillThere;
+  stage.setProgress(anchors[k - 1].shape + (anchors[k].shape - anchors[k - 1].shape) * enter);
+  stage.setLift(start + (to - start) * smooth(enter));
 }
 function onScroll() {
   const at = scrollY + innerHeight / 2;
@@ -66,7 +92,12 @@ function onScroll() {
   const b = anchors[i + 1];
   const t = Math.min(Math.max((at - a.mid) / (b.mid - a.mid), 0), 1);
   const held = Math.min(Math.max((t - 0.22) / 0.56, 0), 1);
-  stage.setProgress(a.shape + (b.shape - a.shape) * held);
+  if (innerWidth < 900) {
+    followSlots();
+  } else {
+    stage.setLift(null);
+    stage.setProgress(a.shape + (b.shape - a.shape) * held);
+  }
   const current = t < 0.5 ? i : i + 1;
   let label = "";
   $$(".rail a").forEach((link) => {

@@ -490,9 +490,9 @@ export function createStage(canvas, { reduced = false } = {}) {
       [3.3, 0.0, 0.6, -0.5, 0.2], [0.0, 1.0, 0.9, 0.0, 0.0],
     ],
     tall: [
-      [0.0, 1.45, 0.5, -0.2, 0.1], [0.0, 1.95, 0.44, -0.3, 0.1], [0.0, 2.1, 0.5, 0.4, 0.06], [0.0, 2.05, 0.3, -0.2, 0.5],
-      [0.0, 2.0, 0.44, -0.4, 0.0], [0.0, 2.0, 0.5, 0.2, 0.42], [0.0, 2.3, 0.36, 0.0, 0.25], [0.0, 1.85, 0.3, 0.3, 0.08],
-      [0.0, 2.05, 0.3, -0.5, 0.2], [0.0, 1.3, 0.46, 0.0, 0.0],
+      [0.0, 1.45, 0.52, -0.2, 0.1], [0.0, 1.95, 0.46, -0.3, 0.1], [0.0, 2.1, 0.62, 0.4, 0.06], [0.0, 2.05, 0.42, -0.2, 0.5],
+      [0.0, 2.0, 0.48, -0.4, 0.0], [0.0, 2.0, 0.5, 0.2, 0.42], [0.0, 2.3, 0.42, 0.0, 0.25], [0.0, 1.85, 0.42, 0.3, 0.08],
+      [0.0, 2.05, 0.44, -0.5, 0.2], [0.0, 1.3, 0.46, 0.0, 0.0],
     ],
   }; // prettier-ignore
 
@@ -532,6 +532,8 @@ export function createStage(canvas, { reduced = false } = {}) {
   let last = performance.now();
   let clock = 0;
   let gateOpen = 0;
+  let lift = null; // on narrow screens the page says where the form sits, in screen units from -1 to 1
+  const HALF = Math.tan((camera.fov / 2) * (Math.PI / 180)) * camera.position.z;
   const accentColor = new THREE.Color("#d43a1e");
   const okColor = new THREE.Color("#1f6b4a");
 
@@ -557,7 +559,7 @@ export function createStage(canvas, { reduced = false } = {}) {
     const e = mix * mix * (3 - 2 * mix);
     tilt.x = lerp(tilt.x, pointerNdc.x > 2 ? 0 : pointerNdc.x, 0.05);
     tilt.y = lerp(tilt.y, pointerNdc.y > 2 ? 0 : pointerNdc.y, 0.05);
-    group.position.set(lerp(a[0], b[0], e) * fit, lerp(a[1], b[1], e), 0);
+    group.position.set(lerp(a[0], b[0], e) * fit, tall && lift !== null ? lift * HALF : lerp(a[1], b[1], e), 0);
     group.scale.setScalar(lerp(a[2], b[2], e) * fit);
     const sway = reduced ? 0 : Math.sin(clock * 0.25) * 0.08;
     group.rotation.set(lerp(a[4], b[4], e) - tilt.y * 0.12, lerp(a[3], b[3], e) + tilt.x * 0.22 + sway, 0);
@@ -622,6 +624,9 @@ export function createStage(canvas, { reduced = false } = {}) {
     },
     openGate(seconds = 3.2) {
       gateOpen = seconds;
+    },
+    setLift(value) {
+      lift = value;
     },
     // Light one member of a grouped form (a satellite, a box); -1 clears it.
     focus(shape, member) {
