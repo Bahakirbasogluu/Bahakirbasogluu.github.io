@@ -2,6 +2,7 @@ import { access, dedupe, extract, gate } from "./toys.js";
 import { game } from "./game.js";
 import { CASES, REPOS } from "./content.js";
 import { cases, facts, index, marquee, teaching, ticker, trail } from "./sections.js";
+import { track } from "./track.js";
 
 const root = document.documentElement;
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -275,6 +276,7 @@ marquee($("#trained"));
 trail($("#trail"));
 facts($("#facts"));
 index($("#work-index"), { onHover: (i) => stage.focus(SHAPE.index, i) });
+track();
 
 // The number and the address are put together here, so they are not sitting in the page source for harvesters.
 const PHONE = ["+90", "553", "266", "07", "67"];

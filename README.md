@@ -14,6 +14,7 @@ npm run build    # static output in dist/
 - `src/toys.js` approval gate, extraction, news watch, permission lens
 - `src/game.js` find the lesions
 - `src/main.js` scroll mapping, command menu (Cmd+K or /), lesson mode (T), theme
+- `src/track.js` visit and click counts
 - `src/style.css`, `src/sections.css` type, layout, panels
 
-No backend, no tracking, no external requests. The font is Archivo (SIL Open Font License), self-hosted.
+No backend. Visits are counted with GoatCounter, without cookies; nothing else leaves the page. The font is Archivo (SIL Open Font License), self-hosted.
