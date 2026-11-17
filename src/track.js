@@ -1,7 +1,23 @@
 // Visit counts, sent to GoatCounter: one request per page view and one per thing worth knowing
-// about (a section reached, a link followed). No cookies, nothing kept in the browser.
+// about (a section reached, a link followed). No cookies.
 const ENDPOINT = "https://bahakirbasoglu.goatcounter.com/count";
-const live = location.hostname === "bahakirbasoglu.com" && !navigator.webdriver && window === window.parent;
+
+// Opening the page once with #count-off keeps this browser out of the counts; #count-on undoes it.
+const SWITCH = { "#count-off": "off", "#count-on": "on" }[location.hash];
+let skipped = false;
+try {
+  if (SWITCH === "off") localStorage.setItem("count", "off");
+  if (SWITCH === "on") localStorage.removeItem("count");
+  skipped = localStorage.getItem("count") === "off";
+} catch {
+  /* storage blocked: the browser is counted like any other */
+}
+if (SWITCH) {
+  history.replaceState(null, "", location.pathname + location.search);
+  alert(skipped ? "This browser is no longer counted." : "This browser is counted again.");
+}
+
+const live = location.hostname === "bahakirbasoglu.com" && !navigator.webdriver && window === window.parent && !skipped;
 
 function send(fields) {
   if (!live) return;
