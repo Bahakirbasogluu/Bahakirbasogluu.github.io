@@ -136,10 +136,9 @@ export function marquee(root) {
 // -------------------------------------------------------------------- path
 export function trail(root) {
   root.innerHTML = TRAIL.map(
-    (step) => `<li${step.now ? ' class="live"' : ""}>
-      <span class="when">${step.when}</span>
-      <span class="what"><b>${step.role}</b><i>${step.at}</i></span>
-      <p>${step.text}</p></li>`,
+    (step, i) => `<li${step.now ? ' class="live"' : ""}><details name="trail"${i === 0 ? " open" : ""}>
+      <summary><span class="when">${step.when}</span><span class="what"><b>${step.role}</b><i>${step.at}</i></span></summary>
+      <p>${step.text}</p></details></li>`,
   ).join("");
 }
 

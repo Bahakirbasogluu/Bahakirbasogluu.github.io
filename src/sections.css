@@ -472,13 +472,8 @@ button.chip {
 }
 .trail li {
   position: relative;
-  display: grid;
-  grid-template-columns: 130px minmax(0, 4fr) minmax(0, 6fr);
-  gap: 16px;
-  align-items: baseline;
-  padding: 18px 6px;
   border-bottom: 1px solid var(--line);
-  transition: padding 0.45s var(--ease), background 0.35s;
+  transition: background 0.35s;
 }
 .trail li::before {
   content: "";
@@ -493,11 +488,38 @@ button.chip {
   transition: transform 0.45s var(--ease);
 }
 .trail li:hover {
-  padding-left: 16px;
   background: color-mix(in srgb, var(--paper-3) 60%, transparent);
 }
-.trail li:hover::before {
+.trail li:hover::before,
+.trail li:has(details[open])::before {
   transform: scaleY(1);
+}
+.trail summary {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr) 20px;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 10px;
+  cursor: pointer;
+  list-style: none;
+}
+.trail summary::-webkit-details-marker {
+  display: none;
+}
+.trail summary::after {
+  content: "+";
+  font: 500 16px/1 var(--mono);
+  color: var(--mute);
+  text-align: right;
+  transition: transform 0.35s var(--ease), color 0.3s;
+}
+.trail details[open] summary::after {
+  transform: rotate(45deg);
+  color: var(--accent);
+}
+.trail details p {
+  padding: 0 46px 18px 156px;
+  max-width: 78ch;
 }
 .when {
   font: 500 11px/1.4 var(--mono);
@@ -546,7 +568,7 @@ button.chip {
 .facts {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  gap: 16px;
 }
 .fact {
   border: 1px solid var(--line);
@@ -781,9 +803,22 @@ button.chip {
     grid-template-columns: minmax(0, 1fr);
     gap: 4px;
   }
-  .trail li {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
+  .trail summary {
+    grid-template-columns: minmax(0, 1fr) 20px;
+    gap: 6px 10px;
+    padding: 14px 8px;
+  }
+  .trail summary .when {
+    grid-column: 1 / -1;
+  }
+  .trail details p {
+    padding: 0 8px 16px;
+  }
+  .memo {
+    min-height: 152px;
+  }
+  .outro {
+    padding-bottom: calc(var(--pad) + 84px);
   }
   .facts {
     grid-template-columns: minmax(0, 1fr);
@@ -945,6 +980,17 @@ button.chip {
 }
 
 @media (max-width: 900px) {
+  /* a solid bar: the phone's browser carries its colour up under the status bar,
+     so the page no longer shows through there */
+  .bar {
+    background-color: var(--paper);
+    padding-top: 14px;
+    padding-bottom: 12px;
+  }
+  .bar::before {
+    inset: 100% 0 -22px 0;
+    background: linear-gradient(to bottom, var(--paper), transparent);
+  }
   /* the stage becomes a band that lives in the page and scrolls with it */
   #stage {
     position: absolute;
@@ -976,6 +1022,11 @@ button.chip {
   .case-tab .t {
     white-space: nowrap;
   }
+  .trail,
+  .facts,
+  .shelf {
+    grid-column: 1 / -1;
+  }
   .reach {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -999,4 +1050,13 @@ button.chip {
   .bench-head {
     align-items: flex-start;
   }
+}
+
+/* the share image is the first screen without its controls */
+.card .rail,
+.card .tools,
+.card .cue,
+.card .hero-foot .now,
+.card .prog {
+  visibility: hidden;
 }

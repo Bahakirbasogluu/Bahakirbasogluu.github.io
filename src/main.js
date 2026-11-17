@@ -1,4 +1,3 @@
-import { createStage } from "./scene.js";
 import { access, dedupe, extract, gate } from "./toys.js";
 import { game } from "./game.js";
 import { CASES, REPOS } from "./content.js";
@@ -8,6 +7,9 @@ const root = document.documentElement;
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+
+// A clean first screen for the share image: open the page with ?card.
+if (new URLSearchParams(location.search).has("card")) root.classList.add("card");
 
 // ------------------------------------------------------------------ theme
 const store = {
@@ -29,13 +31,27 @@ const store = {
 let dark = (store.get("theme") ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark";
 
 // ------------------------------------------------------------------ stage
-// Without WebGL the page still works; it just has no form on stage.
-let stage = { setProgress() {}, setTheme() {}, openGate() {}, rebuildInitials() {}, focus() {}, pulse() {}, pin() {} };
-try {
-  stage = createStage($("#stage"), { reduced });
-} catch {
-  $("#stage").remove();
-}
+// The stage (and the 3D library behind it) loads after the page itself, so text and panels are
+// there first. Calls made before it arrives are kept and replayed. Without WebGL the page still
+// works; it just has no form on stage.
+let live = null;
+const waiting = [];
+const stage = new Proxy(
+  {},
+  {
+    get:
+      (_, name) =>
+      (...args) =>
+        live ? live[name](...args) : void waiting.push([name, args]),
+  },
+);
+import("./scene.js")
+  .then(({ createStage }) => {
+    live = createStage($("#stage"), { reduced });
+    for (const [name, args] of waiting) live[name](...args);
+    waiting.length = 0;
+  })
+  .catch(() => $("#stage")?.remove());
 function applyTheme() {
   root.dataset.theme = dark ? "dark" : "light";
   $('meta[name="theme-color"]').content = dark ? "#0d0d0c" : "#f4f1ea";
@@ -64,7 +80,20 @@ function measure() {
 // In the wide sections the form gets the free columns on the right. Its natural width and
 // height (in the scene's own units) decide how large it can be drawn there.
 const EXTENT = { 3: [5.0, 3.0], 7: [2.5, 4.4], 8: [2.7, 3.9] };
+const SEAL = 3.45; // the seal's diameter in the scene's units
 function berths() {
+  // The seal on the opening screen takes the room between the bar and the headline, to the right.
+  const headline = $(".hero .display").getBoundingClientRect();
+  const top = 76;
+  const room = headline.top + scrollY - top;
+  if (innerWidth >= 900 && room > 140) {
+    const size = Math.min(room / SEAL, (innerWidth * 0.34) / SEAL);
+    const half = (size * SEAL) / 2;
+    const x = Math.min(innerWidth * 0.72, innerWidth - half - 40);
+    stage.pin(0, { x, y: top + room / 2, size });
+  } else {
+    stage.pin(0, null);
+  }
   for (const { el, shape } of anchors) {
     const extent = EXTENT[shape];
     if (!extent) continue;

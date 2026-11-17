@@ -133,7 +133,20 @@ export function gate(root, { onApprove } = {}) {
   ["pointerup", "pointerleave", "pointercancel", "touchend", "keyup", "blur"].forEach((name) => ok.addEventListener(name, release));
   ok.addEventListener("contextmenu", (ev) => ev.preventDefault());
 
+  // When the memo appears the panel grows; a finger lifted just then must not press what slid under it.
+  let quietUntil = 0;
+  root.addEventListener(
+    "click",
+    (ev) => {
+      if (performance.now() < quietUntil) {
+        ev.preventDefault();
+        ev.stopPropagation();
+      }
+    },
+    true,
+  );
   async function approve() {
+    quietUntil = performance.now() + 1600;
     arm(false);
     node("review").classList.remove("wait");
     node("review").classList.add("done");
